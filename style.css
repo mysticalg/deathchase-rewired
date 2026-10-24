@@ -7,3 +7,9 @@
 @media(max-width:700px){.instructions{display:none}#menu{top:20%}h1{font-size:clamp(60px,14vw,80px)}footer{bottom:94px}#menu p{margin-bottom:22px}#start{padding:12px 24px} }
 #lock{position:fixed;z-index:3;pointer-events:none;transform:translate(-50%,-50%);border:1px solid #ffce64;color:#ffdc87;padding:22px 12px;min-width:100px;font-size:14px;letter-spacing:2px;text-align:center;text-shadow:0 1px 4px #000;display:none;background:radial-gradient(ellipse,transparent,#ffb32a10)}body:not(.playing) #lock{visibility:hidden}.actions{gap:12px}@media(max-width:700px){.actions{gap:0}.actions button{font-size:10px;letter-spacing:1px}.brand{font-size:17px}}
 .speed{display:none}
+
+footer{display:none}@media(max-width:700px){header{flex-wrap:wrap;gap:10px}.brand{font-size:13px;letter-spacing:2px}.brand span{display:none}.actions{margin-left:auto}.actions button{font-size:10px;letter-spacing:.5px;padding:5px}#touch{gap:4px}#touch button{min-width:0;flex:1;font-size:11px;letter-spacing:.5px}}
+
+#crosshair,#message{pointer-events:none}canvas{touch-action:none}
+
+#onfoot{position:fixed;z-index:6;bottom:8%;left:50%;transform:translateX(-50%);text-align:center;color:#edc883;letter-spacing:2px}#onfoot[hidden]{display:none}#foot-status{margin-bottom:12px;font-size:19px}#remount{padding:15px 30px;border:1px solid #eac26e;background:#111e23e8;color:#ffe0a2;font-size:20px}
