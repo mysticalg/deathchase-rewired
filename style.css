@@ -6,3 +6,4 @@
 #title-art{position:fixed;inset:0;background:center/cover no-repeat url('/title-art.png');z-index:1;pointer-events:none}body.playing #title-art,body.paused #title-art{display:none}
 @media(max-width:700px){.instructions{display:none}#menu{top:20%}h1{font-size:clamp(60px,14vw,80px)}footer{bottom:94px}#menu p{margin-bottom:22px}#start{padding:12px 24px} }
 #lock{position:fixed;z-index:3;pointer-events:none;transform:translate(-50%,-50%);border:1px solid #ffce64;color:#ffdc87;padding:22px 12px;min-width:100px;font-size:14px;letter-spacing:2px;text-align:center;text-shadow:0 1px 4px #000;display:none;background:radial-gradient(ellipse,transparent,#ffb32a10)}body:not(.playing) #lock{visibility:hidden}.actions{gap:12px}@media(max-width:700px){.actions{gap:0}.actions button{font-size:10px;letter-spacing:1px}.brand{font-size:17px}}
+.speed{display:none}
