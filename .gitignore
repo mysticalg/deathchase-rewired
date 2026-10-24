@@ -2,3 +2,4 @@ node_modules/
 dist/
 concept.png
 *.tar.gz
+*.jpg
