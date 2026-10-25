@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 export function buildRiderCockpit(cockpit,mats){
  const steering=new THREE.Group();cockpit.add(steering);
- const leatherMap=new THREE.TextureLoader().load('/riding-leather.png');leatherMap.colorSpace=THREE.SRGBColorSpace;leatherMap.wrapS=leatherMap.wrapT=THREE.RepeatWrapping;leatherMap.repeat.set(2,2);leatherMap.anisotropy=4;
+ const leatherMap=new THREE.TextureLoader().load('/character-leather.png');leatherMap.colorSpace=THREE.SRGBColorSpace;leatherMap.wrapS=leatherMap.wrapT=THREE.RepeatWrapping;leatherMap.repeat.set(2,2);leatherMap.anisotropy=4;
  const sleeve=new THREE.MeshStandardMaterial({color:'#c5ccd3',map:leatherMap,bumpMap:leatherMap,bumpScale:.008,roughness:.83});
  const glove=new THREE.MeshStandardMaterial({color:'#929ba5',map:leatherMap,bumpMap:leatherMap,bumpScale:.005,roughness:.7});
  const armor=new THREE.MeshStandardMaterial({color:'#26313c',metalness:.35,roughness:.5});

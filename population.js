@@ -1,8 +1,9 @@
+import {createCharacterMaterials,addFace} from './character-materials.js';
 import * as THREE from 'three';
 import {pointSegmentDistance} from './gameplay.js';
 
 // Population belongs to the map: no nearby spawning or timed corpse cleanup.
-export function createPopulation(scene,height,fx,onKill=()=>{}){
+export function createPopulation(scene,height,fx,onKill=()=>{},looks=createCharacterMaterials(false)){
  let seed=7319,time=0,ink=0,spacing=0,stampCount=0;
  const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
  const material=c=>new THREE.MeshStandardMaterial({color:c,roughness:.9});
@@ -11,10 +12,12 @@ export function createPopulation(scene,height,fx,onKill=()=>{}){
  const sphere=new THREE.SphereGeometry(1,8,6),box=new THREE.BoxGeometry(1,1,1);
  const actors=[],corpses=[],camps=[],extraBodies=[];
  function part(parent,geo,mat,x,y,z,sx,sy,sz){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.scale.set(sx,sy,sz);parent.add(m);return m;}
- function adult(model,index){const jacket=jackets[index%jackets.length],limbs=[];
-  part(model,box,jacket,0,1.12,0,.48,.65,.28);part(model,sphere,skin,0,1.65,0,.18,.22,.18);
-  part(model,sphere,jacket,0,1.82,0,.2,.07,.2);part(model,box,dark,0,1.15,.2,.32,.43,.18);
-  for(const s of [-1,1]){limbs.push(part(model,box,dark,s*.14,.42,0,.18,.78,.2));limbs.push(part(model,box,jacket,s*.32,1.05,0,.14,.62,.17));part(model,sphere,skin,s*.32,.72,0,.08,.09,.08);}return limbs;
+ function adult(model,index){const jacket=looks.jackets[index%looks.jackets.length],pants=looks.trousers[index%looks.trousers.length],skinMat=looks.skin[index%looks.skin.length],limbs=[];
+  part(model,new THREE.CapsuleGeometry(.23,.31,4,10),jacket,0,1.13,0,1,1, .72);part(model,sphere,skinMat,0,1.65,0,.18,.22,.18);addFace(model,looks,index);
+  const hair=part(model,new THREE.SphereGeometry(1,12,8,0,Math.PI*2,0,Math.PI*.48),looks.hair[index%looks.hair.length],0,1.75,.02,.188,.125,.18);
+  if(index%3===0)part(model,box,pants,0,1.16,.22,.32,.42,.17);
+  part(model,box,looks.trim,0,1.15,-.18,.012,.4,.012);
+  for(const side of [-1,1]){limbs.push(part(model,new THREE.CapsuleGeometry(.085,.57,4,8),pants,side*.14,.43,0,1,1,1));limbs.push(part(model,new THREE.CapsuleGeometry(.075,.42,4,8),jacket,side*.3,1.08,0,1,1,1));part(model,sphere,skinMat,side*.3,.76,0,.075,.09,.07);part(model,box,looks.leather,side*.14,.075,-.06,.19,.14,.32);}return limbs;
  }
  function animal(model,kind){const cow=kind==='COW',sheep=kind==='SHEEP',mat=cow?white:sheep?wool:grey,length=cow?1.7:sheep?1.05:1.25,y=cow?1.1:.72,limbs=[];
   part(model,sphere,mat,0,y,0,cow?.52:.36,cow?.55:.35,length*.5);
