@@ -2,7 +2,8 @@ import * as THREE from 'three';
 export const WORLD_RADIUS=850;
 export const FORESTS=[{x:-280,z:-240,r:155},{x:290,z:-270,r:165},{x:-300,z:260,r:175},{x:310,z:290,r:155}];
 export function forestAt(x,z){return FORESTS.some(f=>Math.hypot(x-f.x,z-f.z)<f.r);}
-export function terrainHeight(x,z){const broad=Math.sin(z*.014)*3.5+Math.sin(z*.031+x*.012)*1.5+Math.sin(x*.021+z*.006)*2.6;const distance=Math.hypot(x,z),rim=Math.min(1.25,Math.max(0,(distance-570)/220));return broad+Math.pow(rim,2)*55*(.75+.25*Math.sin(Math.atan2(z,x)*9));}
+let cityTerrain=false;export function setCityTerrain(value){cityTerrain=value;}
+export function terrainHeight(x,z){if(cityTerrain)return 0;const broad=Math.sin(z*.014)*3.5+Math.sin(z*.031+x*.012)*1.5+Math.sin(x*.021+z*.006)*2.6;const distance=Math.hypot(x,z),rim=Math.min(1.25,Math.max(0,(distance-570)/220));return broad+Math.pow(rim,2)*55*(.75+.25*Math.sin(Math.atan2(z,x)*9));}
 export function createWorld(scene,mats){
  let seed=4917;function rand(){seed=seed*16807%2147483647;return(seed-1)/2147483646;}
  const geo=new THREE.PlaneGeometry(1900,1900,240,240);geo.rotateX(-Math.PI/2);const p=geo.attributes.position;for(let i=0;i<p.count;i++)p.setY(i,terrainHeight(p.getX(i),p.getZ(i)));geo.computeVertexNormals();const floor=new THREE.Mesh(geo,mats.ground);floor.receiveShadow=true;scene.add(floor);
