@@ -1,10 +1,11 @@
+import {createWalkGraph,spawnWalker,stepWalker,onPavement} from './city-walkers.js';
 import {createCharacterMaterials,addFace} from './character-materials.js';
 import * as THREE from 'three';
 import {pointSegmentDistance} from './gameplay.js';
 
 // Population belongs to the map: no nearby spawning or timed corpse cleanup.
 export function createPopulation(scene,height,fx,onKill=()=>{},looks=createCharacterMaterials(false)){
- let seed=7319,time=0,ink=0,spacing=0,stampCount=0;
+ let seed=7319,time=0,ink=0,spacing=0,stampCount=0,cityMode=false;const walkGraph=createWalkGraph();
  const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
  const material=c=>new THREE.MeshStandardMaterial({color:c,roughness:.9});
  const dark=material('#252a28'),skin=material('#bf9474'),wool=material('#d2cbb5'),grey=material('#686b65'),white=material('#dad6c7');
@@ -38,10 +39,10 @@ export function createPopulation(scene,height,fx,onKill=()=>{},looks=createChara
   for(let j=0;j<10;j++){const a=random()*6.28,r=5+random()*17;add('CAMPER',x+Math.sin(a)*r,z+Math.cos(a)*r,j+n);}
  }
  for(const [kind,count] of [['WOLF',12],['COW',20],['SHEEP',28]])for(let i=0;i<count;i++){const cluster=i%4,a=random()*6.28,r=12+random()*35;const centres=[[60,-115],[-120,80],[170,130],[-170,-320]];add(kind,centres[cluster][0]+Math.sin(a)*r,centres[cluster][1]+Math.cos(a)*r,i);}
- for(let i=0;i<140;i++){const a=add('CAMPER',0,0,i);a.userData.cityOnly=true;a.userData.enabled=false;a.visible=false;}
+ for(let i=0;i<400;i++){const a=add('CAMPER',0,0,i);a.userData.cityOnly=true;a.userData.enabled=false;a.visible=false;}
  const bloodMat=new THREE.MeshBasicMaterial({color:'#821626',side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-3});
  const marks=new THREE.InstancedMesh(new THREE.PlaneGeometry(.16,.65),bloodMat,12000);marks.count=0;marks.frustumCulled=false;scene.add(marks);const dummy=new THREE.Object3D(),normal=new THREE.Vector3(),axis=new THREE.Vector3(0,0,1);
- function align(o,x,z){const dx=(height(x+.15,z)-height(x-.15,z))/.3,dz=(height(x,z+.15)-height(x,z-.15))/.3;normal.set(-dx,1,-dz).normalize();o.position.set(x,height(x,z)+.045,z);o.quaternion.setFromUnitVectors(axis,normal);}
+ function align(o,x,z){const dx=(height(x+.15,z)-height(x-.15,z))/.3,dz=(height(x,z+.15)-height(x,z-.15))/.3;normal.set(-dx,1,-dz).normalize();o.position.set(x,height(x,z)+.045+(cityMode&&onPavement(x,z)?.24:0),z);o.quaternion.setFromUnitVectors(axis,normal);}
  function pool(x,z){const m=new THREE.Mesh(new THREE.CircleGeometry(.9,10),bloodMat);align(m,x,z);m.scale.set(1.1,.7,1);scene.add(m);return m;}
  function kill(a){if(!a.userData.alive)return false;const d=a.userData;d.alive=false;d.velocity.set(0,0,0);d.model.rotation.z=Math.PI/2;d.model.position.y=d.kind==='CAMPER'?.25:.4;d.pool=pool(a.position.x,a.position.z);corpses.push(a);onKill(d.kind);fx.blood(a.position.clone().add(new THREE.Vector3(0,d.aimHeight,0)));return true;}
  function keepBody(e){const copy=e.clone(true);copy.position.y=height(copy.position.x,copy.position.z)+.35;copy.rotation.z=1.5;scene.add(copy);extraBodies.push(copy,pool(copy.position.x,copy.position.z));}
@@ -49,12 +50,12 @@ export function createPopulation(scene,height,fx,onKill=()=>{},looks=createChara
   for(const a of actors){const d=a.userData;if(d.enabled===false)continue;a.visible=Math.hypot(a.position.x-p.x,a.position.z-p.z)<210;if(!a.visible)continue;if(!d.alive){if(grounded&&pointSegmentDistance(a.position.x,a.position.z,p.oldX,p.oldZ,p.x,p.z)<1.2)ink=55;continue;}
    const old=a.position.clone(),distance=Math.hypot(p.x-old.x,p.z-old.z),flee=distance<18&&p.speed>3;let vx,vz,v=flee?(d.kind==='CAMPER'?4:7):d.kind==='WOLF'?2.8:.65;
    if(flee){vx=(old.x-p.x)/Math.max(.1,distance);vz=(old.z-p.z)/Math.max(.1,distance);}else{const tx=d.home.x+Math.sin(time*.12+d.phase)*11,tz=d.home.z+Math.cos(time*.1+d.phase)*11,len=Math.hypot(tx-old.x,tz-old.z);vx=(tx-old.x)/Math.max(1,len);vz=(tz-old.z)/Math.max(1,len);}
-   if(d.city){vx=0;vz=Math.sin(time*.25+d.phase)>0?1:-1;}a.position.x+=vx*v*dt;a.position.z+=vz*v*dt;a.position.y=height(a.position.x,a.position.z);a.rotation.y=Math.atan2(-vx,-vz);d.velocity.copy(a.position).sub(old).divideScalar(Math.max(.001,dt));d.limbs.forEach((l,i)=>l.rotation.x=Math.sin(time*v*5+(i%2)*Math.PI)*.3);
+   if(d.city){const canCross=!(p.traffic||[]).some(c=>!c.userData.wreck&&c.userData.velocity.length()>1&&Math.hypot(c.position.x-a.position.x,c.position.z-a.position.z)<10);d.walk=stepWalker(walkGraph,d.walk,(flee?2.4:1.05+(d.phase%1)*.45)*dt,random,canCross);a.position.x=d.walk.x;a.position.z=d.walk.z;const moved=Math.hypot(a.position.x-old.x,a.position.z-old.z);vx=moved?(a.position.x-old.x)/moved:Math.sin(a.rotation.y)*-1;vz=moved?(a.position.z-old.z)/moved:Math.cos(a.rotation.y)*-1;}else{a.position.x+=vx*v*dt;a.position.z+=vz*v*dt;}a.position.y=height(a.position.x,a.position.z)+(d.city&&onPavement(a.position.x,a.position.z)?.24:0);a.rotation.y=Math.atan2(-vx,-vz);d.velocity.copy(a.position).sub(old).divideScalar(Math.max(.001,dt));d.limbs.forEach((l,i)=>l.rotation.x=Math.sin(time*v*5+(i%2)*Math.PI)*.3);
    if(riding&&pointSegmentDistance(a.position.x,a.position.z,p.oldX,p.oldZ,p.x,p.z)<d.hitRadius+.45){kill(a);ink=55;}
   }
   if(grounded&&ink>0){spacing+=travelled;const steps=Math.floor(spacing/.55);spacing-=steps*.55;for(let j=0;j<steps;j++){const t=(j+1)/Math.max(1,steps),x=THREE.MathUtils.lerp(p.oldX,p.x,t),z=THREE.MathUtils.lerp(p.oldZ,p.z,t);for(const side of [-1,1]){align(dummy,x+Math.cos(p.yaw)*side*.22-Math.sin(p.yaw),z+Math.sin(p.yaw)*side*.22+Math.cos(p.yaw));dummy.rotateZ(-p.yaw);dummy.scale.set(.8+random()*.35,1,1);dummy.updateMatrix();marks.setMatrixAt(stampCount%12000,dummy.matrix);stampCount++;}}marks.count=Math.min(12000,stampCount);marks.instanceMatrix.needsUpdate=true;ink=Math.max(0,ink-travelled);}
  }
- function reset(){time=ink=spacing=stampCount=0;marks.count=0;corpses.length=0;for(const o of extraBodies)scene.remove(o);extraBodies.length=0;for(const a of actors){const d=a.userData;if(d.pool){scene.remove(d.pool);d.pool.geometry.dispose();delete d.pool;}d.alive=true;d.hp=d.kind==='COW'?3:1;d.model.rotation.set(0,0,0);d.model.position.set(0,0,0);a.position.set(d.home.x,height(d.home.x,d.home.z),d.home.z);d.velocity.set(0,0,0);}}
- function setLevel(city,spawns){for(let i=0;i<actors.length;i++){const a=actors[i],d=a.userData;if(!d.forestHome)d.forestHome={...d.home};d.city=city;d.home=city?{...spawns[i%spawns.length]}:{...d.forestHome};d.enabled=city?d.kind==='CAMPER':!d.cityOnly;a.visible=d.enabled;}for(const c of camps)c.visible=!city;reset();}
+ function reset(){time=ink=spacing=stampCount=0;marks.count=0;corpses.length=0;for(const o of extraBodies)scene.remove(o);extraBodies.length=0;for(const a of actors){const d=a.userData;if(d.pool){scene.remove(d.pool);d.pool.geometry.dispose();delete d.pool;}d.alive=true;d.hp=d.kind==='COW'?3:1;d.model.rotation.set(0,0,0);d.model.position.set(0,0,0);if(d.city&&d.enabled){d.walk=spawnWalker(walkGraph,d.populationIndex,random);d.home={x:d.walk.x,z:d.walk.z};}a.position.set(d.home.x,height(d.home.x,d.home.z)+(d.city&&onPavement(d.home.x,d.home.z)?.24:0),d.home.z);d.velocity.set(0,0,0);}}
+ function setLevel(city,spawns){cityMode=city;for(let i=0;i<actors.length;i++){const a=actors[i],d=a.userData;if(!d.forestHome)d.forestHome={...d.home};d.city=city;d.populationIndex=i;d.home=city?{...spawns[i%spawns.length]}:{...d.forestHome};d.enabled=city?d.kind==='CAMPER':!d.cityOnly;a.visible=d.enabled;}for(const c of camps)c.visible=!city;reset();}
  reset();return {actors,corpses,camps,marks,kill,keepBody,update,reset,setLevel,get trailCount(){return marks.count;}};
 }

@@ -21,6 +21,14 @@ The `dist` folder is a static site. The included GitHub Actions workflow automat
 
 ## Controls
 
-W/S throttle/brake, mouse or A/D steer, click/F fire, Space jump, Shift boost, E/R lean, Q/Z air spin, B/N roll, C sharp spin, V camera, X dismount, G remount, M map, L lights, P pause. On foot, click/F swings the bat.
+W/S throttle/brake, mouse or A/D steer, click/F fire, Space jump, Shift boost. E/R wheelie/endo on the ground and accelerating backflip/frontflip in the air. A/D or left/right arrows spin in the air; up/down arrows pitch; B/N roll. Hold longer to build angular speed. C sharp turn, V camera, X dismount, G remount, M map, L lights, P pause.
+
+Chase camera: middle-mouse drag or Alt + mouse movement to orbit, J/K keyboard orbit, H look behind, T recenter, mouse wheel zoom. The camera smoothly recentres after driving without manual camera input.
+
+The city has 520 pedestrians on pavement routes and zebra crossings. Bike impacts accumulate local cosmetic deformation; damaged machines retain their ride controls. A new run resets damage. On foot, click/F swings the bat.
 
 ImageGen texture prompts are recorded in `texture-prompts.md`.
+
+## Checks
+
+Run `npm test` for pavement/crossing routes, accelerating stunts, orbit recentering, gravity, and cumulative deformation/copy/reset checks.
