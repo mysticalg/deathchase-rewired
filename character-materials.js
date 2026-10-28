@@ -1,6 +1,7 @@
+import {assetUrl} from './assets.js';
 import * as THREE from 'three';
 export function createCharacterMaterials(load=true){
- const texture=(path,tile=true)=>{const t=load?new THREE.TextureLoader().load(path):new THREE.Texture();t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;if(tile){t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(2,2);}return t;};
+ const texture=(path,tile=true)=>{const t=load?new THREE.TextureLoader().load(assetUrl(path)):new THREE.Texture();t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;if(tile){t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(2,2);}return t;};
  const leatherMap=texture('/character-leather.png'),fabricMap=texture('/character-fabric.png'),faceMap=texture('/character-face.png',false);
  const cloth=color=>new THREE.MeshStandardMaterial({color,map:fabricMap,bumpMap:fabricMap,bumpScale:.008,roughness:.91});
  const leather=new THREE.MeshStandardMaterial({color:'#d1d4d7',map:leatherMap,bumpMap:leatherMap,bumpScale:.012,roughness:.66});
