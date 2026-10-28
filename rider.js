@@ -9,9 +9,9 @@ export function createRider(looks){
  function limb(a,b,r1,r2,mat=leather){const from=new THREE.Vector3(...a),to=new THREE.Vector3(...b),delta=to.clone().sub(from),m=new THREE.Mesh(new THREE.CylinderGeometry(r2,r1,delta.length(),16,4),mat);m.position.copy(from).add(to).multiplyScalar(.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize());rider.add(m);return m;}
  function piping(points,mat=seam,radius=.008){const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p))),m=new THREE.Mesh(new THREE.TubeGeometry(curve,20,radius,6,false),mat);rider.add(m);return m;}
  const profile=[[.15,0],[.21,.04],[.215,.14],[.235,.30],[.285,.48],[.30,.59],[.275,.66],[.19,.70],[.11,.72]].map(([r,y])=>new THREE.Vector2(r,y));
- const jacket=new THREE.Mesh(new THREE.LatheGeometry(profile,28),leather);jacket.name='tapered-jacket';jacket.scale.z=.66;jacket.position.set(0,1.12,.28);jacket.rotation.x=-.36;rider.add(jacket);
+ const jacketGeo=new THREE.LatheGeometry(profile,40),uv=jacketGeo.attributes.uv,positions=jacketGeo.attributes.position;for(let i=0;i<uv.count;i++){const angle=uv.getX(i)*Math.PI*2,front=Math.cos(angle)<0,projected=(Math.sin(angle)+1)*.5;uv.setXY(i,(front?.5:0)+projected*.5,positions.getY(i)/.72);}const jacket=new THREE.Mesh(jacketGeo,looks.ridingJacket);jacket.name='tapered-jacket';jacket.scale.z=.66;jacket.position.set(0,1.12,.28);jacket.rotation.x=-.36;rider.add(jacket);
  ellipsoid(leather,[0,1.08,.33],[.235,.16,.26]);
- ellipsoid(armor,[0,1.49,.29],[.145,.26,.045]);
+
  // Shoulder protectors, elbow pads, two-joint legs and proper ankle-high riding boots.
  for(const side of [-1,1]){
   const shoulder=[side*.275,1.72,.025],elbow=[side*.44,1.38,-.05],wrist=[side*.54,1.18,-.50];
@@ -22,7 +22,7 @@ export function createRider(looks){
   limb(hip,knee,.13,.105);ellipsoid(armor,knee,[.115,.14,.115]);limb(knee,ankle,.103,.077);ellipsoid(leather,ankle,[.09,.15,.11]);
   const boot=ellipsoid(leather,[side*.34,.355,.13],[.105,.09,.235]);boot.rotation.x=.08;
   ellipsoid(rubber,[side*.34,.305,.12],[.11,.025,.23]);
-  piping([[side*.19,1.2,.40],[side*.24,1.41,.40],[side*.25,1.63,.25],[side*.20,1.76,.15]]);
+
   piping([[side*.25,1.73,.13],[side*.31,1.69,.08],[side*.35,1.62,-.02]],looks.trim,.014);
  }
  limb([0,1.77,.035],[0,1.91,-.16],.095,.09,rubber);
